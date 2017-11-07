@@ -16,7 +16,9 @@ def pointwise_regression_loss(doc_scores, labels):
          )
 
 def pointwise_classification_loss(doc_scores, labels):
-  raise NotImplementedError('Pointwise classification is not implemented')
+  return -tf.reduce_sum(
+            tf.multiply(doc_scores, tf.cast(labels, tf.float32))
+         )
 
 def pairwise_loss(doc_scores, labels):
   raise NotImplementedError('Pairwise is not implemented')
