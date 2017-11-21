@@ -1,6 +1,7 @@
 # Imports
 import nltk
 from nltk.corpus import reuters
+from gensim.models import Word2Vec
 
 # Available function for reuters:
 # reuters.fileids()         =>  files in format 'test/X' or 'training/X'
@@ -13,9 +14,8 @@ from nltk.corpus import reuters
 # Lowercase words are contents of the news article, uppercase words are
 # titles of the news articles
 
-
-# Main function
-def main():
+# Load the dataset
+def loadDataset():
 
     # Variables that will be filled
     train_docs = []
@@ -38,7 +38,7 @@ def main():
         type, id = doc.split('/')
         
         # This is a test document
-        if type == 'test':
+        if type == 't':
 
             # Skip test documents for now
             pass
@@ -65,6 +65,32 @@ def main():
                     word2token[word] = num_words
                     token2word[num_words] = word
 
+            # Store document
+            train_docs.append({'id' : num_docs, 'words' : words, 'tokens' : [word2token[x] for x in words]})
+    # Return values
+    return train_docs, word2token, token2word, num_docs, num_words
+
+
+# Simple gensim test
+def word2vec(train_docs):
+
+    # Get sentences from the training docs
+    sentences = [x['words'] for x in train_docs]
+
+    # Initialize model
+    model = Word2Vec(min_count = 2, size = 50, window = 4)
+
+    # Create vocabulary
+    model.build_vocab(sentences)
+    
+    # Basic test
+    print(model.wv.most_similar(positive=['man']))
+
+
+# Main function
+def main():
+    train_docs, _, _, _, _ = loadDataset()  
+    word2vec(train_docs)
 
 if __name__ == '__main__':
     main()
