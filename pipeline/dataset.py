@@ -1,7 +1,8 @@
 # Imports
 import nltk
 from nltk.corpus import reuters
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, LdaModel
+from gensim import corpora
 
 # Available function for reuters:
 # reuters.fileids()         =>  files in format 'test/X' or 'training/X'
@@ -29,7 +30,7 @@ def loadDataset():
     nltk.download('reuters')
 
     # Fetch the documents
-    documents = reuters.fileids()
+    documents = reuters.fileids()[:100]
 
     # Loop over documents
     for doc in documents:
@@ -71,7 +72,7 @@ def loadDataset():
     return train_docs, word2token, token2word, num_docs, num_words
 
 
-# Simple gensim test
+# Simple word2vec test
 def word2vec(train_docs):
 
     # Get sentences from the training docs
@@ -87,10 +88,42 @@ def word2vec(train_docs):
     print(model.wv.most_similar(positive=['man']))
 
 
+# Simple LDA test
+def lda(corpus, dictionary):
+    lda = LdaModel(
+        corpus=corpus, 
+        num_topics=200, 
+        id2word=dictionary, 
+        distributed=False, 
+        chunksize=2000, 
+        passes=5, 
+        update_every=1, 
+        alpha='symmetric', 
+        eta=None, 
+        decay=0.5, 
+        offset=1.0, 
+        eval_every=100, 
+        iterations=50, 
+        gamma_threshold=0.001, 
+        minimum_probability=0.001, 
+        random_state=None, 
+        ns_conf={}, 
+        minimum_phi_value=0.01, 
+        per_word_topics=False
+    )
+
 # Main function
 def main():
     train_docs, _, _, _, _ = loadDataset()  
-    word2vec(train_docs)
+    # word2vec(train_docs)
+    # 
+    
+    sentences = [x['words'] for x in train_docs]
+    
+    # Create dictionary and corpus
+    dictionary = corpora.Dictionary(sentences)
+    corpus = [dictionary.doc2bow(text) for text in sentences]
+    lda(corpus, dictionary)
 
 if __name__ == '__main__':
     main()
