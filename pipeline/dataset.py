@@ -88,6 +88,21 @@ def word2vec(train_docs):
     print(model.wv.most_similar(positive=['man']))
 
 
+# Simple LSI test
+def lsi(corpus, dictionary):
+    # More info on paramters: https://radimrehurek.com/gensim/models/lsimodel.html
+    lsi = LsiModel(
+        corpus=corpus,        # corpus used to train the model
+        num_topics=200,       # the number of latent dimensions
+        id2word=dictionary,   
+        chunksize=20000,      # Training proceeds in chunks of chunksize documents. Tradeoff between speed and memory
+        decay=0.9,            # < 1.0 causes re-orientation towards new data trends in the input document stream
+        distributed=False,    # enable distributed computing
+        onepass=True,         # set to false to force multi-pass stochastic algorithm
+        power_iters=3,        # higher improves accuracy, but lowers performance
+        extra_samples=150     # influence on stochastic multi-pass algorithm
+    )
+
 # Simple LDA test
 def lda(corpus, dictionary):
     lda = LdaModel(
@@ -115,9 +130,7 @@ def lda(corpus, dictionary):
 # Main function
 def main():
     train_docs, _, _, _, _ = loadDataset()  
-    # word2vec(train_docs)
-    # 
-    
+    # word2vec(train_docs)    
     sentences = [x['words'] for x in train_docs]
     
     # Create dictionary and corpus
