@@ -1,8 +1,14 @@
 # Imports
 import nltk
 from nltk.corpus import reuters
+from sklearn.manifold import TSNE
 from gensim.models import Word2Vec, LdaModel
-from gensim import corpora
+from gensim import corpora, matutils
+import gensim
+import matplotlib.pyplot as plt
+from random import randint
+import numpy as np
+
 
 # Available function for reuters:
 # reuters.fileids()         =>  files in format 'test/X' or 'training/X'
@@ -18,6 +24,8 @@ from gensim import corpora
 # Load the dataset
 def loadDataset():
 
+    print("Loading dataset...")
+
     # Variables that will be filled
     train_docs = []
     test_docs = []
@@ -30,7 +38,7 @@ def loadDataset():
     nltk.download('reuters')
 
     # Fetch the documents
-    documents = reuters.fileids()[:100]
+    documents = reuters.fileids()
 
     # Loop over documents
     for doc in documents:
@@ -39,7 +47,7 @@ def loadDataset():
         type, id = doc.split('/')
         
         # This is a test document
-        if type == 't':
+        if type == 'test':
 
             # Skip test documents for now
             pass
@@ -68,12 +76,15 @@ def loadDataset():
 
             # Store document
             train_docs.append({'id' : num_docs, 'words' : words, 'tokens' : [word2token[x] for x in words]})
+
     # Return values
     return train_docs, word2token, token2word, num_docs, num_words
 
 
 # Simple word2vec test
 def word2vec(train_docs):
+
+    print("Training word2vec model...")
 
     # Get sentences from the training docs
     sentences = [x['words'] for x in train_docs]
@@ -85,7 +96,10 @@ def word2vec(train_docs):
     model.build_vocab(sentences)
     
     # Basic test
-    print(model.wv.most_similar(positive=['man']))
+    # print(model.wv.most_similar(positive=['man']))
+    model.save('word2vec')
+
+    print ("word2vec model saved as 'word2vec'")
 
 
 # Simple LSI test
@@ -102,6 +116,8 @@ def lsi(corpus, dictionary):
         power_iters=3,        # higher improves accuracy, but lowers performance
         extra_samples=150     # influence on stochastic multi-pass algorithm
     )
+
+    lsi.save('lsi_model')
 
 # Simple LDA test
 def lda(corpus, dictionary):
@@ -127,16 +143,91 @@ def lda(corpus, dictionary):
         per_word_topics=False
     )
 
+    lda.save('lda_model')
+
+# TSNE test
+def tsne_word2vec(model):
+
+    print("Running t-SNE")
+
+    # Fetch the documents
+    documents = reuters.fileids()
+
+    # Store data
+    num_docs = 0
+    num_categories = 0
+    doc_vecs = []
+    doc_cats = []
+    doc_colors = []
+    colors = []
+    categories = {}
+    category2index = {}
+
+    for i in range(150):
+        colors.append('#%06X' % randint(0, 0xFFFFFF))
+
+    # Loop over documents
+    for doc in documents:
+
+        # Get the type (test or training) and the file ID
+        type, id = doc.split('/')
+        
+        # This is a test document
+        if type == 'test':
+
+            num_docs += 1
+
+            # Get words for this document
+            words = reuters.words(doc)
+
+            word_vecs = []
+
+            # Loop over words
+            for word in words:
+
+                # Is this word in our vocab?
+                if word in model.wv.vocab:
+
+                    word_vecs.append(model[word])
+
+        
+            doc_vecs.append(np.mean(word_vecs, axis=0))
+            
+            # Get category
+            category = reuters.categories(doc)[0]
+            
+
+            if category not in category2index:
+                num_categories += 1
+                categories[num_categories] = {'color': colors[num_categories], 'name' : category}
+                category2index[category] = num_categories
+
+            doc_cats.append(category2index[category])
+            doc_colors.append(categories[category2index[category]]['color'])
+
+    tsne = TSNE(n_components=2)
+    X_tsne = tsne.fit_transform(doc_vecs)
+
+    plt.scatter(X_tsne[:, 0], X_tsne[:, 1], color=doc_colors)
+    plt.show()
+
 # Main function
 def main():
     train_docs, _, _, _, _ = loadDataset()  
     # word2vec(train_docs)    
-    sentences = [x['words'] for x in train_docs]
+    # sentences = [x['words'] for x in train_docs]
     
+
+    word2vec = Word2Vec.load('word2vec')
+
+    tsne_word2vec(word2vec)
+
+
+
     # Create dictionary and corpus
-    dictionary = corpora.Dictionary(sentences)
-    corpus = [dictionary.doc2bow(text) for text in sentences]
-    lda(corpus, dictionary)
+    # dictionary = corpora.Dictionary(sentences)
+    # corpus = [dictionary.doc2bow(text) for text in sentences]
+    # lda(corpus, dictionary)
 
 if __name__ == '__main__':
     main()
