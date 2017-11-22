@@ -6,6 +6,7 @@ from gensim.models import Word2Vec, LdaModel
 from gensim import corpora, matutils
 import gensim
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from random import randint
 import numpy as np
 
@@ -209,11 +210,19 @@ def tsne_word2vec(model):
     X_tsne = tsne.fit_transform(doc_vecs)
 
     plt.scatter(X_tsne[:, 0], X_tsne[:, 1], color=doc_colors)
+
+    classes = [categories[x]['name'] for x in categories]
+    class_colours = [categories[x]['color'] for x in categories]
+    recs = []
+    for i in range(0, len(class_colours)):
+        recs.append(mpatches.Rectangle((0,0),1,1,fc=class_colours[i]))
+
+    plt.legend(recs,classes,loc=4)
     plt.show()
 
 # Main function
 def main():
-    train_docs, _, _, _, _ = loadDataset()  
+    # train_docs, _, _, _, _ = loadDataset()  
     # word2vec(train_docs)    
     # sentences = [x['words'] for x in train_docs]
     
