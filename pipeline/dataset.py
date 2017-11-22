@@ -29,7 +29,6 @@ def loadDataset():
 
     # Variables that will be filled
     train_docs = []
-    test_docs = []
     word2token = {}
     token2word = {}
     num_docs = 0
@@ -47,14 +46,8 @@ def loadDataset():
         # Get the type (test or training) and the file ID
         type, id = doc.split('/')
         
-        # This is a test document
-        if type == 'test':
-
-            # Skip test documents for now
-            pass
-
-        # We're dealing with a training document
-        else:
+        # This is a training document
+        if type == 'training':
             
             # Increment document counter
             num_docs += 1
@@ -147,9 +140,38 @@ def lda(corpus, dictionary):
     lda.save('lda_model')
 
 # TSNE test
-def tsne_word2vec(model):
+def tsne(doc_vecs, doc_colors, categories):
 
     print("Running t-SNE")
+
+    # Run t-SNE to 2 dimensions for the document vectors
+    tsne = TSNE(n_components=2)
+    X_tsne = tsne.fit_transform(doc_vecs)
+
+    # Scatter plot with correct colors
+    plt.scatter(X_tsne[:, 0], X_tsne[:, 1], color=doc_colors)
+
+    # Get names and colors for the categories
+    classes = [categories[x]['name'] for x in categories]
+    class_colours = [categories[x]['color'] for x in categories]
+
+    # Store the rectangles for the legend
+    # Implementation based on: https://stackoverflow.com/questions/26558816/matplotlib-scatter-plot-with-legend
+    recs = []
+
+    # Loop over all categories and create a rectangle for the legend
+    for i in range(0, len(class_colours)):
+        recs.append(mpatches.Rectangle((0,0),1,1,fc=class_colours[i]))
+
+    # Add legend
+    plt.legend(recs, classes, loc=4)
+
+    # Actually plot
+    plt.show()
+
+def word2vec2tsne(model):
+
+    print ("Testing word2vec data and preparing data for t-SNE")
 
     # Fetch the documents
     documents = reuters.fileids()
@@ -164,6 +186,7 @@ def tsne_word2vec(model):
     categories = {}
     category2index = {}
 
+    # Generate some random colors for the graph
     for i in range(150):
         colors.append('#%06X' % randint(0, 0xFFFFFF))
 
@@ -176,11 +199,13 @@ def tsne_word2vec(model):
         # This is a test document
         if type == 'test':
 
+            # Increment doc counter
             num_docs += 1
 
             # Get words for this document
             words = reuters.words(doc)
 
+            # Store all word vectors for this document
             word_vecs = []
 
             # Loop over words
@@ -189,36 +214,26 @@ def tsne_word2vec(model):
                 # Is this word in our vocab?
                 if word in model.wv.vocab:
 
+                    # Get word vector
                     word_vecs.append(model[word])
 
-        
+            # Create document vector by averaging the word vectors        
             doc_vecs.append(np.mean(word_vecs, axis=0))
             
             # Get category
             category = reuters.categories(doc)[0]
             
-
+            # Get a color for the category if it does not yet exist
             if category not in category2index:
                 num_categories += 1
                 categories[num_categories] = {'color': colors[num_categories], 'name' : category}
                 category2index[category] = num_categories
 
-            doc_cats.append(category2index[category])
+            # Store the color for this document
             doc_colors.append(categories[category2index[category]]['color'])
 
-    tsne = TSNE(n_components=2)
-    X_tsne = tsne.fit_transform(doc_vecs)
-
-    plt.scatter(X_tsne[:, 0], X_tsne[:, 1], color=doc_colors)
-
-    classes = [categories[x]['name'] for x in categories]
-    class_colours = [categories[x]['color'] for x in categories]
-    recs = []
-    for i in range(0, len(class_colours)):
-        recs.append(mpatches.Rectangle((0,0),1,1,fc=class_colours[i]))
-
-    plt.legend(recs,classes,loc=4)
-    plt.show()
+    # Pass on to t-SNE function
+    tsne(doc_vecs, doc_colors, categories)
 
 # Main function
 def main():
@@ -229,7 +244,7 @@ def main():
 
     word2vec = Word2Vec.load('word2vec')
 
-    tsne_word2vec(word2vec)
+    word2vec2tsne(word2vec)
 
 
 
