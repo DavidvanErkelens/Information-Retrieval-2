@@ -20,10 +20,9 @@ class TripleIterator:
     def __init__(self):
         
         # Get max file
-        # files = glob.glob('../data/wiki/triples/([0-9]+).p')
-        # max_id = max(x.split('.')[0] for x in files)
-        # self.max = max_id
-        self.max = 10
+        files = glob.glob('../data/wiki/triples/*.p')
+        max_id = max([int(x.split('/')[-1].split('.')[0]) for x in files]) # Long live Python 
+        self.max = max_id
 
     def __iter__(self):
         self.current = 0
@@ -43,7 +42,8 @@ class TripleIterator:
 
 def main():
     for x in TripleIterator():
-        print ("Outlier: " + str(x.getOutlier()))
+        # print ("Outlier: " + str(x.getOutlier()))
+        pass
 
 if __name__ == '__main__':
     main()
