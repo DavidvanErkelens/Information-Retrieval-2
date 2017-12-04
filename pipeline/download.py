@@ -21,9 +21,6 @@ def main():
         # Number of processed triplets
         processed = 0
 
-        # Store the dataset
-        dataset = []
-
         # Loop over lines
         for line in contents:
 
@@ -141,8 +138,8 @@ def main():
             print("Stored triplet " + str(processed))
 
             # Break for testing purposes
-            if processed > 50:
-                break
+            # if processed > 50:
+            #     break
 
 
 if __name__ == '__main__':
