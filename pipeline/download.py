@@ -19,10 +19,17 @@ def main():
         contents = file.readlines()
 
         # Number of processed triplets
-        processed = 0
+        processed = 917
+        iterated = 0
 
         # Loop over lines
         for line in contents:
+
+            # Update iterated
+            iterated += 1
+
+            if iterated <= 1255:
+                continue
 
             # Skip commented lines
             if line[0] == '#':
@@ -43,65 +50,73 @@ def main():
             # Store articles
             triple['articles'] = {}
 
-            # Loop over articles
-            for item in line.split():
+            # Prevent errors
+            try:
 
-                # Store article
-                article = {}
 
-                # Get XML export URL
-                url = item.replace('http://en.wikipedia.org/wiki/', 'https://en.wikipedia.org/wiki/Special:Export/')
-                opener = urllib.request.build_opener()
-                
-                # Parse XML export and get root node
-                tree = ET.parse(opener.open(url))
-                root = tree.getroot()
+                # Loop over articles
+                for item in line.split():
 
-                # Try to get the page contents
-                page = root.find('{http://www.mediawiki.org/xml/export-0.10/}page')
+                    # Store article
+                    article = {}
 
-                # If that does not exist, the page is removed and the line is therefore not valid
-                if page is None:
-                    validline = False
-                    break
+                    # Get XML export URL
+                    url = item.replace('http://en.wikipedia.org/wiki/', 'https://en.wikipedia.org/wiki/Special:Export/')
+                    opener = urllib.request.build_opener()
+                    
+                    # Parse XML export and get root node
+                    tree = ET.parse(opener.open(url))
+                    root = tree.getroot()
 
-                # Get the content of the page
-                revision = page.find('{http://www.mediawiki.org/xml/export-0.10/}revision')
-                text = revision.find('{http://www.mediawiki.org/xml/export-0.10/}text')
-                content = ET.tostring(text, encoding='ascii').decode('ascii')
+                    # Try to get the page contents
+                    page = root.find('{http://www.mediawiki.org/xml/export-0.10/}page')
 
-                # Try to convert it to plain text using a Python wrapper around Pandoc
-                try:
-                    converted = pypandoc.convert_text(content, 'plain', format='mediawiki').encode('ascii', 'ignore').decode('ascii')
-                except RuntimeError:
+                    # If that does not exist, the page is removed and the line is therefore not valid
+                    if page is None:
+                        validline = False
+                        break
 
-                    # We can not convert the text, so we mark this line as invalid
-                    validline = False
-                    break
+                    # Get the content of the page
+                    revision = page.find('{http://www.mediawiki.org/xml/export-0.10/}revision')
+                    text = revision.find('{http://www.mediawiki.org/xml/export-0.10/}text')
+                    content = ET.tostring(text, encoding='ascii').decode('ascii')
 
-                # Get all categories from the mediawiki format
-                cats = re.findall('\[\[Category:(.+?)\]\]', content)
+                    # Try to convert it to plain text using a Python wrapper around Pandoc
+                    try:
+                        converted = pypandoc.convert_text(content, 'plain', format='mediawiki').encode('ascii', 'ignore').decode('ascii')
+                    except RuntimeError:
 
-                # Store a set of the articles
-                linecats[num_articles] = set(cats)
+                        # We can not convert the text, so we mark this line as invalid
+                        validline = False
+                        break
 
-                # Cleanup the last bits of HTML from the plain text
-                clean = BeautifulSoup(converted, "lxml").text
+                    # Get all categories from the mediawiki format
+                    cats = re.findall('\[\[Category:(.+?)\]\]', content)
 
-                # Store text
-                article['text'] = clean
+                    # Store a set of the articles
+                    linecats[num_articles] = set(cats)
 
-                # Store URL
-                article['url'] = item
+                    # Cleanup the last bits of HTML from the plain text
+                    clean = BeautifulSoup(converted, "lxml").text
 
-                # Store tokenized article
-                tokenized = [word2id[x] if x in word2id else 0 for x in clean.split()]
-                article['tokens'] = tokenized
-                triple['articles'][num_articles] = article
+                    # Store text
+                    article['text'] = clean
 
-                # We've processed one more article
-                num_articles += 1
+                    # Store URL
+                    article['url'] = item
 
+                    # Store tokenized article
+                    tokenized = [word2id[x] if x in word2id else 0 for x in clean.split()]
+                    article['tokens'] = tokenized
+                    triple['articles'][num_articles] = article
+
+                    # We've processed one more article
+                    num_articles += 1
+
+            except:
+
+                # Something went wrong
+                continue
             
             # Skip further processing of this line if it is not valid
             if not validline:
@@ -135,7 +150,7 @@ def main():
             processed += 1
 
             # Print
-            print("Stored triplet " + str(processed))
+            print("Stored triplet " + str(processed) + " [" + str(iterated) + "]")
 
             # Break for testing purposes
             # if processed > 50:
