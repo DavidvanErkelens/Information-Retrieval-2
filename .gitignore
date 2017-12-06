@@ -1,3 +1,4 @@
 *.swp
 .ipynb_checkpoints
 data/wiki/triplets/*.p
+data/wiki/triplets/fixed/*.p

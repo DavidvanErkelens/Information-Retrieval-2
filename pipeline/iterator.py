@@ -55,11 +55,42 @@ class TripleIterator:
         return triple
 
 def main():
-    # id2word = pickle.load(open('../data/wiki/id2word.p', 'rb'))
+
+    # Keep track of totals
+    passed = 0
+    correct = 0
 
     for x in TripleIterator():
-        # x.update(id2word)
-        pass
+        # print ("Outlier: " + str(x.getOutlier()))
+
+        actual_outlier = x.getOutlier()
+
+        doc0 = x.getTokens(0)
+        doc1 = x.getTokens(1)
+        doc2 = x.getTokens(2)
+
+        # Pass paragraphs though model and calculate distance metric between them
+        # Dummy data..
+        dist01 = 0
+        dist12 = 0
+        dist02 = 0
+
+        # Get the detected outlier
+        detected_outlier = 0
+
+        if dist01 < dist02 && dist01 < dist12:
+            detected_outlier = 2
+
+        if dist02 < dist01 && dist02 < dist12:
+            detected_outlier = 1
+
+        # Correct?
+        if actual_outlier == detected_outlier:
+            correct += 1
+
+        passed += 1
+
+    print("Correct: " + str(correct / float(passed)))
 
 if __name__ == '__main__':
     main()
