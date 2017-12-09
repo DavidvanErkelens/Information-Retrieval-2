@@ -11,6 +11,7 @@ def main():
 
     # Load word IDs
     word2id = pickle.load(open('../data/wiki/id2token.p', 'rb'))
+    id2word = pickle.load(open('../data/wiki/id2word.p', 'rb'))
 
     # Open file with Wikipedia triplets, downloaded from http://cs.stanford.edu/ ̃quocle/triplets-data.tar.gz
     with open('wikipedia_2014_09_27_examples.txt') as file:
@@ -19,7 +20,7 @@ def main():
         contents = file.readlines()
 
         # Number of processed triplets
-        processed = 917
+        processed = 0
         iterated = 0
 
         # Loop over lines
@@ -27,9 +28,6 @@ def main():
 
             # Update iterated
             iterated += 1
-
-            if iterated <= 1255:
-                continue
 
             # Skip commented lines
             if line[0] == '#':
