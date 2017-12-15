@@ -293,4 +293,4 @@ class GraphVec():
 
     def load(self, file_name):
         print('Loading model: ', file_name)
-        self.saver.restore(sess, file_name)
+        self.saver.restore(self.sess, file_name)
