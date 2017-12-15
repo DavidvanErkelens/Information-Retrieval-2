@@ -6,6 +6,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str, default='reuters')
 parser.add_argument('--epochs', type=int, default=1000)
 parser.add_argument('--print_freq', type=int, default=10)
+parser.add_argument('--backup_freq', type=int, default=10)
 
 parser.add_argument('--learning_rate', type=float, default=1e-2)
 parser.add_argument('--dropout', type=float, default=0.0)
@@ -50,4 +51,4 @@ if __name__ == "__main__":
                              window_batch_size=args.window_batch_size)
 
     # Start training
-    geo_vec_model.train(args.epochs, args.print_freq)
+    geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq)

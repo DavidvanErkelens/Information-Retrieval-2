@@ -26,7 +26,6 @@ class GraphVec():
         self.n_neg_samples = n_neg_samples
         self.window_size = window_size
         self.window_batch_size = window_batch_size
-        # self.
 
         # use for plotting
         self._loss_vals, self._acc_vals = [], []
@@ -51,6 +50,9 @@ class GraphVec():
         self.aux_losses = None
         dummy = sp2tf(ss.eye(self.vocab_size))
         self.init_model(x=dummy)
+
+        # saver
+        self.saver = tf.train.Saver()
 
         # optimizer
         self.init_optimizer()
@@ -221,7 +223,7 @@ class GraphVec():
 
         return dummy, idx_o, idx_i, val_o, val_i, train_dataset, train_labels
 
-    def train(self, num_epochs=100, print_freq=50):
+    def train(self, num_epochs=100, print_freq=50, backup_freq=None):
         """train op that can be invoked multiple times."""
         tf.set_random_seed(43)
         np.random.seed(43)
@@ -242,8 +244,14 @@ class GraphVec():
                   % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
             if (e + 1) % print_freq == 0:
                 print('')
+
+            if backup_freq:
+                if (e + 1) % backup_freq == 0:
+                    self.save('models/model_{}.ckpt'.format(e))
+                    
         else:
             print('----> done training: {} epochs'.format(self.trained))
+            self.save('models/model_final.ckpt')
 
     def plot(self):
         """Plotting loss function"""
@@ -278,3 +286,11 @@ class GraphVec():
 
         emb_o, emb_i = self.sess.run([self.emb_o, self.emb_i], feed_dict=feed_dict)
         return A_o, A_i, emb_o, emb_i
+
+    def save(self, file_name):
+        print('Saving model: ', file_name)
+        self.saver.save(self.sess, file_name)
+
+    def load(self, file_name):
+        print('Loading model: ', file_name)
+        self.saver.restore(sess, file_name)
