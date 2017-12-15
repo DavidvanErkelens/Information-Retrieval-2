@@ -4,7 +4,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str, default='reuters')
-parser.add_argument('--load_model', type=str)
+parser.add_argument('--save_name', type=str, default='save_name')
 
 parser.add_argument('--friendly_print', action='store_true')
 parser.add_argument('--print_freq', type=int, default=10)
@@ -20,6 +20,8 @@ parser.add_argument('--n_neg_samples', type=int, default=64)
 parser.add_argument('--window_size', type=int, default=8)
 parser.add_argument('--window_batch_size', type=int, default=128)
 parser.add_argument('--h_layers', nargs='+', type=int, default=[32, 8])
+
+parser.add_argument('--load_model', type=str)
 args = parser.parse_args()
 
 def load_dataset(dataset):
@@ -59,4 +61,4 @@ if __name__ == "__main__":
         geo_vec_model.load(args.load_model)
 
     # Start training
-    geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq)
+    geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)

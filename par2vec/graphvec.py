@@ -223,7 +223,7 @@ class GraphVec():
 
         return dummy, idx_o, idx_i, val_o, val_i, train_dataset, train_labels
 
-    def train(self, num_epochs=100, print_freq=50, backup_freq=None):
+    def train(self, num_epochs=100, print_freq=50, backup_freq=None, friendly_print=False, save_name='model'):
         """train op that can be invoked multiple times."""
         tf.set_random_seed(43)
         np.random.seed(43)
@@ -253,11 +253,11 @@ class GraphVec():
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('models/model_{}.ckpt'.format(e + 1))
+                    self.save('models/{}_{}.ckpt'.format(save_name, e + 1))
                     
         else:
-            print('----> done training: {} epochs'.format(self.trained))
-            self.save('models/model_final.ckpt')
+            print('----> done training: {} iterations'.format(self.trained))
+            self.save('models/{}_final.ckpt'.format(save_name))
 
     def plot(self):
         """Plotting loss function"""
