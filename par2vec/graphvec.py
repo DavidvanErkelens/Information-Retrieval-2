@@ -11,7 +11,7 @@ class GraphVec():
                  act=tf.nn.relu, dropout=0.0, learning_rate=1e-3,
                  pos_sample_size=128, embedding_size_w=128,
                  embedding_size_d=2, n_neg_samples=64,
-                 window_size=8, window_batch_size=128):
+                 window_size=8, window_batch_size=128, friendly_print=False):
         """Geo-Vec model as described in the report model section."""
 
         self.corpus = corpus
@@ -240,10 +240,16 @@ class GraphVec():
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
 
-            print('\r epoch: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
-                  % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
-            if (e + 1) % print_freq == 0:
-                print('')
+            if friendly_print:
+                print('\r epoch: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
+                      % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
+                if (e + 1) % print_freq == 0:
+                    print('')
+            else:
+                if (e + 1) % print_freq == 0:
+                    print('epoch: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
+                          % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
+
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:

@@ -3,12 +3,14 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--load_model', type=str)
 parser.add_argument('--dataset', type=str, default='reuters')
-parser.add_argument('--epochs', type=int, default=1000)
+parser.add_argument('--load_model', type=str)
+
+parser.add_argument('--friendly_print', action='store_true')
 parser.add_argument('--print_freq', type=int, default=10)
 parser.add_argument('--backup_freq', type=int, default=10)
 
+parser.add_argument('--epochs', type=int, default=1000)
 parser.add_argument('--learning_rate', type=float, default=1e-2)
 parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--pos_sample_size', type=int, default=128)
@@ -49,7 +51,8 @@ if __name__ == "__main__":
                              embedding_size_d=args.embedding_size_d,
                              n_neg_samples=args.n_neg_samples,
                              window_size=args.window_size,
-                             window_batch_size=args.window_batch_size)
+                             window_batch_size=args.window_batch_size,
+                             friendly_print=args.friendly_print)
 
     # Load model
     if args.load_model:
