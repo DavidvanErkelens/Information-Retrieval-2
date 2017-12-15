@@ -241,14 +241,14 @@ class GraphVec():
             self._acc_vals.append(avg_acc)
 
             if friendly_print:
-                print('\r epoch: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
+                print('\r iter: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
                       % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
                 if (e + 1) % print_freq == 0:
                     print('')
             else:
                 if (e + 1) % print_freq == 0:
-                    print('epoch: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
-                          % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
+                    print(' iter: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
+                          % (e+1, num_epochs, avg_loss, aux_loss, avg_acc))
 
 
             if backup_freq:
