@@ -12,10 +12,11 @@ def get_adj(tokenized_docs, word2id):
         sp_adj_o = ss.coo_matrix((np.ones(adj_o.shape[1]), (adj_o[0, :],
                                                             adj_o[1, :])),
                                  (len(word2id), len(word2id)))
-        yield sp_adj_o, sp_adj_i
+
+        yield docidx, sp_adj_o, sp_adj_i
 
 def get_lapl(tokenized_docs, word2id, renorm_trick=True):
-    for A_o, A_i in get_adj(tokenized_docs, word2id):
+    for docidx, A_o, A_i in get_adj(tokenized_docs, word2id):
         if renorm_trick == True:
             _A_i = A_i + ss.eye(A_i.shape[0])
             _A_o = A_o + ss.eye(A_o.shape[0])
@@ -24,7 +25,7 @@ def get_lapl(tokenized_docs, word2id, renorm_trick=True):
         L_i = _A_i.dot(D_inv_sqrt_i).transpose().dot(D_inv_sqrt_i).tocoo()
         L_o = _A_o.dot(D_inv_sqrt_o).transpose().dot(D_inv_sqrt_o).tocoo()
 
-        yield A_o, A_i, L_o, L_i
+        yield docidx, A_o, A_i, L_o, L_i
 
 def sparse_to_tuple(sparse_mx):
     if not ss.isspmatrix_coo(sparse_mx):
