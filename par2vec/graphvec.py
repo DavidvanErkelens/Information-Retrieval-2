@@ -247,7 +247,7 @@ class GraphVec():
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('models/model_{}.ckpt'.format(e))
+                    self.save('models/model_{}.ckpt'.format(e + 1))
                     
         else:
             print('----> done training: {} epochs'.format(self.trained))

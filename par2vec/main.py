@@ -3,6 +3,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--load_model', type=str)
 parser.add_argument('--dataset', type=str, default='reuters')
 parser.add_argument('--epochs', type=int, default=1000)
 parser.add_argument('--print_freq', type=int, default=10)
@@ -49,6 +50,10 @@ if __name__ == "__main__":
                              n_neg_samples=args.n_neg_samples,
                              window_size=args.window_size,
                              window_batch_size=args.window_batch_size)
+
+    # Load model
+    if args.load_model:
+        geo_vec_model.load(args.load_model)
 
     # Start training
     geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq)
