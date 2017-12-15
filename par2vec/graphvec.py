@@ -195,9 +195,9 @@ class GraphVec():
         """get random sample from corpus graph cache"""
         doc = [np.array([])]
         while len(doc[0]) < self.window_size:
-            r_doc_id = np.random.randint(len(corpus['tokenized']))
-            doc = [np.array(corpus['tokenized'][r_doc_id]).copy()]
-        docidx, A_o, A_i, L_o, L_i = get_lapl(doc, corpus['word2id']).__next__()
+            r_doc_id = np.random.randint(len(self.corpus['tokenized']))
+            doc = [np.array(self.corpus['tokenized'][r_doc_id]).copy()]
+        docidx, A_o, A_i, L_o, L_i = get_lapl(doc, self.corpus['word2id']).__next__()
 
         pos_idx_o = np.random.choice(range(len(A_o.row)), self.pos_sample_size)
         pos_idx_i = np.random.choice(range(len(A_i.row)), self.pos_sample_size)
@@ -278,15 +278,3 @@ class GraphVec():
 
         emb_o, emb_i = self.sess.run([self.emb_o, self.emb_i], feed_dict=feed_dict)
         return A_o, A_i, emb_o, emb_i
-
-
-if __name__ == "__main__":
-    print("Start")
-    word2id = np.load('../data/reuters/reuters_word2id.npy').item(0)
-    id2word = np.load('../data/reuters/reuters_id2word.npy').item(0)
-    tokenized = np.load('../data/reuters/reuters_tokenized.npy')
-
-    corpus = {'tokenized': tokenized, 'word2id': word2id}
-    tf.reset_default_graph()
-    geo_vec_model = GraphVec(corpus=corpus, vocab_size=len(word2id), h_layers=[32, 8], learning_rate=1e-2)
-    geo_vec_model.train(1000, 10)
