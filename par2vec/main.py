@@ -4,6 +4,9 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str, default='reuters')
+parser.add_argument('--epochs', type=int, default=1000)
+parser.add_argument('--print_freq', type=int, default=10)
+
 parser.add_argument('--learning_rate', type=float, default=1e-2)
 parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--pos_sample_size', type=int, default=128)
@@ -27,7 +30,6 @@ def load_dataset(dataset):
     return tokenized, word2id, id2word
 
 
-
 if __name__ == "__main__":
     # Load dataset
     tokenized, word2id, id2word = load_dataset(args.dataset)
@@ -48,4 +50,4 @@ if __name__ == "__main__":
                              window_batch_size=args.window_batch_size)
 
     # Start training
-    geo_vec_model.train(1000, 10)
+    geo_vec_model.train(args.epochs, args.print_freq)
