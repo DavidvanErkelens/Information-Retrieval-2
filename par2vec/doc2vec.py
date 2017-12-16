@@ -18,6 +18,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import cosine
 
 class Doc2Vec(BaseEstimator, TransformerMixin):
 
@@ -27,8 +28,7 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
         embedding_size_d=128,
         vocabulary_size=60000,
         document_size=21000,
-        loss_type='nce_loss',
-	n_neg_samples=64,
+        loss_type='nce_loss', n_neg_samples=64,
         optimize='Adagrad', 
         learning_rate=1.0, n_steps=100001):
         # bind params to class
@@ -63,10 +63,12 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
 
         batch_data, batch_labels = self.generate_batch(doc_ids, word_ids, self.batch_size, self.window_size)
 
+        embeddings = self.sess.run(self.normalized_doc_embeddings)
+
         correct = 0
         for i, triplet in enumerate(triplets):
-            if (cosine(self.doc_embeddings[triplet[0]], self.doc_embeddings[triplet[1]]) >
-                    cosine(self.doc_embeddings[triplet[0]], self.doc_embeddings[triplet[2]])):
+            if (cosine(embeddings[triplet[0]], embeddings[triplet[1]]) >
+                    cosine(embeddings[triplet[0]], embeddings[triplet[2]])):
                 correct += 1
                 print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
