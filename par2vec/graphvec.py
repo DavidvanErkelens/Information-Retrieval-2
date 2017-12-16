@@ -2,6 +2,7 @@ import numpy as np
 import scipy.sparse as ss
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import cosine
 
 from common import sp2tf, get_lapl
 
@@ -104,7 +105,8 @@ class GraphVec():
         self.doc_embeddings = tf.Variable(
             tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
-        embed_d = tf.expand_dims(tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1]), 0)
+        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
+        embed_d = tf.expand_dims(self.embed_d, 0)
         embed_d = tf.tile(embed_d, [tf.shape(embed[0])[0], 1])
 
         embed.append(embed_d)
@@ -193,6 +195,16 @@ class GraphVec():
                      self.placeholders['train_labels']: train_labels}
         return feed_dict
 
+    def get_doc(self, doc_id):
+        doc = [np.array(self.corpus['tokenized'][doc_id]).copy()]
+        docidx, A_o, A_i, L_o, L_i = get_lapl(doc, self.corpus['word2id']).__next__()
+
+        dummy = []
+        for i, d in enumerate([A_o, A_i, L_o, L_i]):
+            dummy.append(sp2tf(d))
+
+        return dummy
+
     def get_sample(self, ratio=1.0):
         """get random sample from corpus graph cache"""
         doc = [np.array([])]
@@ -254,10 +266,28 @@ class GraphVec():
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
                     self.save('models/{}_{}.ckpt'.format(save_name, e + 1))
-                    
+
         else:
             print('----> done training: {} iterations'.format(self.trained))
             self.save('models/{}_final.ckpt'.format(save_name))
+
+    def forward(self, doc_id):
+        A_o, A_i, L_o, L_i = self.get_doc(doc_id)
+
+        feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, 0, 0, 0, 0, 0, 0)
+        outs = self.sess.run([self.embed_d], feed_dict=feed_dict)
+
+        return outs[0]
+
+    def eval_triplets(self, triplets):
+        correct = 0
+        for i, triplet in enumerate(triplets):
+            if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) >
+                    cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
+                correct += 1
+                print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+
+        print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 
     def plot(self):
         """Plotting loss function"""
