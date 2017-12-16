@@ -27,7 +27,8 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
         embedding_size_d=128,
         vocabulary_size=60000,
         document_size=21000,
-        loss_type='nce_loss', n_neg_samples=64,
+        loss_type='nce_loss',
+	n_neg_samples=64,
         optimize='Adagrad', 
         learning_rate=1.0, n_steps=100001):
         # bind params to class
@@ -55,6 +56,22 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
         # create a session
         config = tf.ConfigProto(allow_soft_placement = True)
         self.sess = tf.Session(graph=self.graph, config=config)
+
+    def forward(self, doc_id):
+    	return self.doc_embeddings[doc_id]
+
+
+    def eval_triplets(self, triplets):
+        batch_data, batch_labels = doc2vec.generate_batch(doc_ids, word_ids, self.batch_size, self.window_size)
+
+        correct = 0
+        for i, triplet in enumerate(triplets):
+            if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) >
+                    cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
+                correct += 1
+                print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+
+        print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 
     def _generate_batch_pvdm(self, doc_ids, word_ids, batch_size, window_size):
         '''
