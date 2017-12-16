@@ -59,6 +59,8 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
 
 
     def eval_triplets(self, triplets):
+        doc_ids, word_ids = self._build_dictionaries(docs)
+
         batch_data, batch_labels = self.generate_batch(doc_ids, word_ids, self.batch_size, self.window_size)
 
         correct = 0
