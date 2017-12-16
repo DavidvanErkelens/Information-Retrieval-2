@@ -57,17 +57,14 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
         config = tf.ConfigProto(allow_soft_placement = True)
         self.sess = tf.Session(graph=self.graph, config=config)
 
-    def forward(self, doc_id):
-    	return self.doc_embeddings[doc_id]
-
 
     def eval_triplets(self, triplets):
-        batch_data, batch_labels = doc2vec.generate_batch(doc_ids, word_ids, self.batch_size, self.window_size)
+        batch_data, batch_labels = self.generate_batch(doc_ids, word_ids, self.batch_size, self.window_size)
 
         correct = 0
         for i, triplet in enumerate(triplets):
-            if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) >
-                    cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
+            if (cosine(self.doc_embeddings[triplet[0]], self.doc_embeddings[triplet[1]]) >
+                    cosine(self.doc_embeddings[triplet[0]], self.doc_embeddings[triplet[2]])):
                 correct += 1
                 print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
