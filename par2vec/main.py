@@ -1,5 +1,6 @@
 from graphvec import *
 import argparse
+import pickle
 
 
 parser = argparse.ArgumentParser()
@@ -22,6 +23,7 @@ parser.add_argument('--window_batch_size', type=int, default=128)
 parser.add_argument('--h_layers', nargs='+', type=int, default=[32, 8])
 
 parser.add_argument('--load_model', type=str)
+parser.add_argument('--train', action='store_true')
 args = parser.parse_args()
 
 def load_dataset(dataset):
@@ -60,5 +62,9 @@ if __name__ == "__main__":
     if args.load_model:
         geo_vec_model.load(args.load_model)
 
-    # Start training
-    geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
+    if args.train:
+        # Start training
+        geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
+    else:
+        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
+            geo_vec_model.eval_triplets(pickle.load(f))
