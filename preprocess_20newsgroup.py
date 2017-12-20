@@ -13,12 +13,12 @@ for topic in topiclist:
     for datafile in sorted(listdir('data/20_newsgroup/{}/'.format(topic))):
         with open('data/20_newsgroup/{}/{}'.format(topic, datafile), 'r', encoding='latin-1') as f:
             docs.append(f.read().replace('\n', ' '))
-            topic_str.append(topic)
+            topic_str.append([topic])
 
 # Preprocess topics
 topic2id = dict(zip(topiclist, np.arange(len(topiclist))))
 id2topic = {v: k for k, v in topic2id.items()}
-topics = [topic2id[x] for x in topic_str]
+topics = [[topic2id[x] for x in y] for y in topic_str]
 
 # Preprocess documents
 splitted_docs = [re.sub('[^a-zA-Z]+', ' ', doc) for doc in docs]
