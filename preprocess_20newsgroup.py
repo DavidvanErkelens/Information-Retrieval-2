@@ -30,7 +30,7 @@ unique_words, unique_words_c = np.unique(words, return_counts=True)
 _, unique_words_sort = zip(*sorted(zip(unique_words_c, unique_words), reverse=True))
 
 # Tokenize
-TOP_WORDS = 5000
+TOP_WORDS = 50000
 word2id = dict(zip(unique_words[:TOP_WORDS], np.arange(len(unique_words[:TOP_WORDS]))))
 word2id['<unk>'] = -1
 id2word = {v: k for k, v in word2id.items()}
