@@ -8,7 +8,7 @@ import urllib
 # Load docs
 docs = []
 topic_str = []
-topiclist = listdir('data/20_newsgroup/')
+topiclist = [x for x in listdir('data/20_newsgroup/') if not x.startswith('20_newsgroup')]
 for topic in topiclist:
     for datafile in sorted(listdir('data/20_newsgroup/{}/'.format(topic))):
         with open('data/20_newsgroup/{}/{}'.format(topic, datafile), 'r', encoding='latin-1') as f:
