@@ -55,5 +55,4 @@ regular_doc = ' '.join([id2word[x] for x in tokenized_doc])
 tokenized_topic = topics[0]
 regular_topic = ' '.join([id2topic[x] for x in tokenized_topic])
 
-print('[TOPIC]\n', regular_topic)
-print('\n[DOC]\n', regular_doc)
+print(max([len(x) for x in docs]))
