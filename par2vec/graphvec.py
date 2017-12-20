@@ -103,7 +103,7 @@ class GraphVec():
             embed.append(embed_w)
 
         self.doc_embeddings = tf.Variable(
-            tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
+             tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
         self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
@@ -278,6 +278,11 @@ class GraphVec():
         outs = self.sess.run([self.embed_d], feed_dict=feed_dict)
 
         return outs[0]
+
+    def get_doc_embedding(self, doc_id):
+        doc_v = self.forward(doc_id)
+        with open('dbmatrix{}.npy'.format(doc_id), 'wb') as f:
+            np.save(f, doc_v)
 
     def eval_triplets(self, triplets):
         correct = 0

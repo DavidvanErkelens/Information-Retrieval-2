@@ -66,5 +66,8 @@ if __name__ == "__main__":
         # Start training
         geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
     else:
-        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
-            geo_vec_model.eval_triplets(pickle.load(f))
+        geo_vec_model.get_doc_embedding(191)		
+        #geo_vec_model.get_doc_embedding(10)		
+        #geo_vec_model.get_doc_embedding(11)		
+#        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
+#            geo_vec_model.eval_triplets(pickle.load(f))
