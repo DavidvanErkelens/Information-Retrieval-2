@@ -8,29 +8,33 @@ import urllib
 # Load docs
 docs = []
 topic_str = []
-topiclist = [x for x in listdir('data/20_newsgroup/') if not x.startswith('20_newsgroup')]
+topiclist = [x for x in listdir('data/20_newsgroup/') if not x.startswith('20newsgroup')]
 for topic in topiclist:
     for datafile in sorted(listdir('data/20_newsgroup/{}/'.format(topic))):
         with open('data/20_newsgroup/{}/{}'.format(topic, datafile), 'r', encoding='latin-1') as f:
             docs.append(f.read().replace('\n', ' '))
-            topic_str.append(topic)
+            topic_str.append([topic])
 
 # Preprocess topics
 topic2id = dict(zip(topiclist, np.arange(len(topiclist))))
 id2topic = {v: k for k, v in topic2id.items()}
-topics = [topic2id[x] for x in topic_str]
+topics = [[topic2id[x] for x in y] for y in topic_str]
 
 # Preprocess documents
 splitted_docs = [re.sub('[^a-zA-Z]+', ' ', doc) for doc in docs]
 splitted_docs = [doc.split(' ') for doc in splitted_docs]
-splitted_docs = [[word for word in doc if word != ''] for doc in splitted_docs]
+splitted_docs = [[word.lower() for word in doc if word != ''] for doc in splitted_docs]
+
 words = [x for y in splitted_docs for x in y]
-unique_words = np.unique(words)
+unique_words, unique_words_c = np.unique(words, return_counts=True)
+_, unique_words_sort = zip(*sorted(zip(unique_words_c, unique_words), reverse=True))
 
 # Tokenize
-word2id = dict(zip(unique_words, np.arange(len(unique_words))))
+TOP_WORDS = 50000
+word2id = dict(zip(unique_words[:TOP_WORDS], np.arange(len(unique_words[:TOP_WORDS]))))
+word2id['<unk>'] = -1
 id2word = {v: k for k, v in word2id.items()}
-tokenized = [[word2id[word] for word in doc] for doc in splitted_docs]
+tokenized = [[word2id[word] if word in word2id else -1 for word in doc] for doc in splitted_docs]
 
 # Save tokenized reuters
 np.save('data/20_newsgroup/20newsgroup_topics.npy', topics)
@@ -55,5 +59,5 @@ regular_doc = ' '.join([id2word[x] for x in tokenized_doc])
 tokenized_topic = topics[0]
 regular_topic = ' '.join([id2topic[x] for x in tokenized_topic])
 
-print('[TOPIC]\n', regular_topic)
-print('\n[DOC]\n', regular_doc)
+print(max([len(x) for x in docs]))
+print(len(word2id))

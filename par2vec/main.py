@@ -29,10 +29,12 @@ args = parser.parse_args()
 def load_dataset(dataset):
     ''' Return tokenized dataset, detokenizer and tokenizer '''
     if dataset == 'reuters':
+        print('Loading REUTERS dataset')
         word2id = np.load('../data/reuters/reuters_word2id.npy').item(0)
         id2word = np.load('../data/reuters/reuters_id2word.npy').item(0)
         tokenized = np.load('../data/reuters/reuters_tokenized.npy')
     elif dataset == 'alternative':
+        print('Loading ALTERNATIVE dataset')
         word2id = np.load('../data/20_newsgroup/20newsgroup_word2id.npy').item(0)
         id2word = np.load('../data/20_newsgroup/20newsgroup_id2word.npy').item(0)
         tokenized = np.load('../data/20_newsgroup/20newsgroup_tokenized.npy')

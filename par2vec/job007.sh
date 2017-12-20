@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -n 1
-#SBATCH -t 3000
+#SBATCH -t 1000
 #SBATCH -p gpu
 #SBATCH --output job007b.out
 echo 'EXPERIMENT 7b'
