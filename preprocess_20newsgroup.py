@@ -31,10 +31,10 @@ _, unique_words_sort = zip(*sorted(zip(unique_words_c, unique_words), reverse=Tr
 
 # Tokenize
 TOP_WORDS = 50000
-word2id = dict(zip(unique_words[:TOP_WORDS], np.arange(len(unique_words[:TOP_WORDS]))))
-word2id['<unk>'] = -1
+word2id = dict(zip(unique_words[:TOP_WORDS], np.arange(1, len(unique_words[:TOP_WORDS]) + 1)))
+word2id['<unk>'] = 0
 id2word = {v: k for k, v in word2id.items()}
-tokenized = [[word2id[word] if word in word2id else -1 for word in doc] for doc in splitted_docs]
+tokenized = [[word2id[word] if word in word2id else 0 for word in doc] for doc in splitted_docs]
 
 # Save tokenized reuters
 np.save('data/20_newsgroup/20newsgroup_topics.npy', topics)
