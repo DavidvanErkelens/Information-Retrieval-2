@@ -10,7 +10,7 @@ from common import sp2tf, get_lapl
 class GraphVec():
     def __init__(self, corpus=None, vocab_size=10, h_layers=[8, 4],
                  act=tf.nn.relu, dropout=0.0, learning_rate=1e-3,
-                 pos_sample_size=128, embedding_size_w=128,
+                 pos_sample_size=512, embedding_size_w=128,
                  embedding_size_d=2, n_neg_samples=64,
                  window_size=8, window_batch_size=128, friendly_print=False):
         """Geo-Vec model as described in the report model section."""

@@ -24,6 +24,7 @@ parser.add_argument('--h_layers', nargs='+', type=int, default=[32, 8])
 
 parser.add_argument('--load_model', type=str)
 parser.add_argument('--train', action='store_true')
+parser.add_argument('--eval', action='store_true')
 args = parser.parse_args()
 
 def load_dataset(dataset):
@@ -70,10 +71,13 @@ if __name__ == "__main__":
 
     if args.train:
         # Start training
+        print("TRAINING")
         geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
+    elif args.eval:
+        print("EVALUATING")
+        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
+            geo_vec_model.eval_triplets(pickle.load(f))
     else:
         geo_vec_model.get_doc_embedding(191)		
         #geo_vec_model.get_doc_embedding(10)		
         #geo_vec_model.get_doc_embedding(11)		
-#        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
-#            geo_vec_model.eval_triplets(pickle.load(f))
