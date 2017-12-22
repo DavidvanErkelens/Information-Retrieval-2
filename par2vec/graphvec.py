@@ -320,7 +320,7 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-            if (i + 1) % 2 == 0:
+            if (i + 1) % 100 == 0:
                 print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
@@ -362,7 +362,7 @@ class GraphVec():
     def save(self, file_name):
         print('Saving model: ', file_name)
         self.saver.save(self.sess, file_name)
-        with open(fil_ename[:-5]+'acc', 'wb') as f:
+        with open(file_name[:-5]+'acc', 'wb') as f:
             np.save(self._acc_vals, f)
         with open(file_name[:-5]+'loss', 'wb') as f:
             np.save(self._loss_vals, f)
