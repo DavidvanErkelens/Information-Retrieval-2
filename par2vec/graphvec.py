@@ -156,8 +156,8 @@ class GraphVec():
                                               weights=self.get_weights(self.placeholders['val_i']))
         self.loss = loss_o + loss_i
 
-        # aux_loss = tf.nn.nce_loss(self.weights, self.biases, self.placeholders['train_labels'],
-        #                           self.embed, self.n_neg_samples, self.vocab_size)
+        aux_loss = tf.nn.nce_loss(self.weights, self.biases, self.placeholders['train_labels'],
+                                  self.embed, self.n_neg_samples, self.vocab_size)
         self.aux_losses = tf.reduce_mean(aux_loss)
 
         # gather aux losses and add to total loss
