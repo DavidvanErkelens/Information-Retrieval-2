@@ -86,7 +86,7 @@ class GraphVec():
             tf.random_uniform([self.vocab_size, self.embedding_size_w], -1.0, 1.0))
 
         # concatenating word vectors and doc vector
-        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-2]
+        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-1]
 
         # softmax weights, W and D vectors should be concatenated before applying softmax
         self.weights = tf.Variable(
@@ -259,8 +259,8 @@ class GraphVec():
                                                           2 * docidx.strides))
         np.random.shuffle(windows)
 
-        train_dataset = windows[:512, :-1]
-        train_labels = windows[:512, -1:]
+        train_dataset = windows[:128, :-1]
+        train_labels = windows[:128, -1:]
 
         return dummy, idx_o, idx_i, val_o, val_i, train_dataset, train_labels
 
