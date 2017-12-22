@@ -10,7 +10,7 @@ from common import sp2tf, get_lapl
 class GraphVec():
     def __init__(self, corpus=None, vocab_size=10, h_layers=[8, 4],
                  act=tf.nn.relu, dropout=0.0, learning_rate=1e-3,
-                 pos_sample_size=128, embedding_size_w=128,
+                 pos_sample_size=512, embedding_size_w=128,
                  embedding_size_d=2, n_neg_samples=64,
                  window_size=8, window_batch_size=128, friendly_print=False):
         """Geo-Vec model as described in the report model section."""
@@ -51,6 +51,8 @@ class GraphVec():
         self.aux_losses = None
         dummy = sp2tf(ss.eye(self.vocab_size))
         self.init_model(x=dummy)
+        self.samples = None
+        self.current_sample = 0
 
         # saver
         self.saver = tf.train.Saver()
@@ -75,7 +77,7 @@ class GraphVec():
             if i == 0:
                 self.h.append(self.gcn(x, self.vocab_size, self.h_layers[0], self.act, layer=i, sparse=True))
             elif (i+1) < len(self.h_layers):
-                self.h.append(self.gcn(self.h[-1], self.h_layers[i-1], h_layer, self.act, layer=i, seperate=True))
+                self.h.append(self.gcn(self.h[-1], self.h_layers[i-1], h_layer, self.act, layer=i))
             else:
                 self.emb_o, self.emb_i = self.gcn(self.h[-1], self.h_layers[i-1],
                                                   h_layer, act=lambda x: x, layer=i, separate=True)
@@ -103,7 +105,7 @@ class GraphVec():
             embed.append(embed_w)
 
         self.doc_embeddings = tf.Variable(
-            tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
+             tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
         self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
@@ -166,10 +168,17 @@ class GraphVec():
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
         self.opt_op = optimizer.minimize(self.loss)
 
-        cp_o = tf.equal(tf.cast(self.recon_o, tf.int32),
-                        tf.cast(self.placeholders['val_o'], tf.int32))
-        cp_i = tf.equal(tf.cast(self.recon_i, tf.int32),
-                        tf.cast(self.placeholders['val_i'], tf.int32))
+        cp_o = tf.greater_equal(tf.multiply(tf.cast(self.recon_o, tf.int32),
+                                            tf.cast(self.placeholders['val_o'], tf.int32)),
+                                tf.cast(self.placeholders['val_o'], tf.int32))
+        cp_i = tf.greater_equal(tf.multiply(tf.cast(self.recon_i, tf.int32),
+                                            tf.cast(self.placeholders['val_i'], tf.int32)),
+                                tf.cast(self.placeholders['val_i'], tf.int32))
+
+        # cp_o = tf.equal(tf.cast(self.recon_o, tf.int32),
+        #                 tf.cast(self.placeholders['val_o'], tf.int32))
+        # cp_i = tf.equal(tf.cast(self.recon_i, tf.int32),
+        #                 tf.cast(self.placeholders['val_i'], tf.int32))
         correct_prediction = tf.concat([cp_o, cp_i], 0)
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -205,12 +214,24 @@ class GraphVec():
 
         return dummy
 
-    def get_sample(self, ratio=1.0):
+    def get_sample(self, ratio=.250):
         """get random sample from corpus graph cache"""
+        if (self.samples is None or self.current_sample == len(self.corpus['tokenized'])):
+            self.current_sample = 0
+            self.samples = np.arange(len(self.corpus['tokenized']))
+            np.random.shuffle(self.samples)
+
+        # Get document
         doc = [np.array([])]
         while len(doc[0]) < self.window_size:
-            r_doc_id = np.random.randint(len(self.corpus['tokenized']))
-            doc = [np.array(self.corpus['tokenized'][r_doc_id]).copy()]
+            doc = [np.array(self.corpus['tokenized'][self.samples[self.current_sample]]).copy()]
+            if self.current_sample == len(self.corpus['tokenized']):
+                self.current_samples = 0
+                self.samples = np.arange(len(self.corpus['tokenized']))
+                np.random.shuffle(self.samples)
+            else:
+                self.current_sample += 1
+
         docidx, A_o, A_i, L_o, L_i = get_lapl(doc, self.corpus['word2id']).__next__()
 
         pos_idx_o = np.random.choice(range(len(A_o.row)), self.pos_sample_size)
@@ -221,14 +242,25 @@ class GraphVec():
         val_o = A_o.data[pos_idx_o]
         val_i = A_i.data[pos_idx_i]
 
+        # separately generate negative samples
+        neg_o = np.random.randint(self.vocab_size, size=[int(self.pos_sample_size*ratio), 2])
+        neg_i = np.random.randint(self.vocab_size, size=[int(self.pos_sample_size*ratio), 2])
+
+        # concat
+        val_o = np.hstack((val_o, np.zeros(int(self.pos_sample_size*ratio))))
+        val_i = np.hstack((val_i, np.zeros(int(self.pos_sample_size*ratio))))
+        idx_o = np.vstack((idx_o, neg_o))
+        idx_i = np.vstack((idx_i, neg_i))
+
         dummy = []
         for i, d in enumerate([A_o, A_i, L_o, L_i]):
             dummy.append(sp2tf(d))
 
-        windows = np.copy(np.lib.stride_tricks.as_strided(docidx, (len(docidx)-self.window_size, self.window_size+1),
+        windows = np.copy(np.lib.stride_tricks.as_strided(docidx,
+                                                          (len(docidx)-self.window_size,
+                                                           self.window_size+1),
                                                           2 * docidx.strides))
         np.random.shuffle(windows)
-        # print(windows)
 
         train_dataset = windows[:128, :-1]
         train_labels = windows[:128, -1:]
@@ -247,21 +279,26 @@ class GraphVec():
 
             feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, idx_o, idx_i, val_o, val_i, train_dataset, train_labels)
 
-            outs = self.sess.run([self.opt_op, self.loss, self.aux_losses, self.accuracy], feed_dict=feed_dict)
+            outs = self.sess.run([self.opt_op, self.loss, self.aux_loss, self.accuracy], feed_dict=feed_dict)
             avg_loss, aux_loss, avg_acc = outs[1], outs[2], outs[3]
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
 
             if friendly_print:
-                print('\r iter: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
-                      % (e+1, num_epochs, avg_loss, aux_loss, avg_acc), end='')
+                print('\r iter: %d/%d \t graph loss: %.6f \t aux loss: %.3f \t avg_acc: %.3f'
+                      % (e+1, num_epochs, avg_loss, aux_loss, np.sum(self._acc_vals[-e:])/e), end='')
                 if (e + 1) % print_freq == 0:
                     print('')
             else:
                 if (e + 1) % print_freq == 0:
-                    print(' iter: %d/%d \t graph loss: %.3f \t aux loss: %.3f \t avg_acc: %.3f'
-                          % (e+1, num_epochs, avg_loss, aux_loss, avg_acc))
-
+                    print(' iter: %d/%d \t graph loss: %.6f \t aux loss: %.3f \t avg_acc: %.3f'
+                          % (e+1, num_epochs, avg_loss, aux_loss, np.sum(self._acc_vals[-e:])/e))
+                    # outs = self.sess.run([self.recon_o,
+                    #                       self.placeholders['val_o'],
+                    #                       self.recon_i,
+                    #                       self.placeholders['val_o']],
+                    #                      feed_dict=feed_dict)
+                    # print(outs)
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
@@ -278,6 +315,11 @@ class GraphVec():
         outs = self.sess.run([self.embed_d], feed_dict=feed_dict)
 
         return outs[0]
+
+    def get_doc_embedding(self, doc_id):
+        doc_v = self.forward(doc_id)
+        with open('dbmatrix{}.npy'.format(doc_id), 'wb') as f:
+            np.save(f, doc_v)
 
     def eval_triplets(self, triplets):
         correct = 0

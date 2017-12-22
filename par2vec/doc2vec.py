@@ -291,14 +291,14 @@ class Doc2Vec(BaseEstimator, TransformerMixin):
         # save parameters of the model
         params = self.get_params()
         json.dump(params, 
-            open(os.path.join(path, 'model_params.json'), 'wb'))
+            open(os.path.join(path, 'model_params.json'), 'w'))
         
         # save dictionary, reverse_dictionary
         json.dump(self.dictionary, 
-            open(os.path.join(path, 'model_dict.json'), 'wb'), 
+            open(os.path.join(path, 'model_dict.json'), 'w'), 
             ensure_ascii=False)
         json.dump(self.reverse_dictionary, 
-            open(os.path.join(path, 'model_rdict.json'), 'wb'), 
+            open(os.path.join(path, 'model_rdict.json'), 'w'), 
             ensure_ascii=False)
 
         print("Model saved in file: %s" % save_path)

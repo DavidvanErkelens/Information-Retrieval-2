@@ -24,14 +24,21 @@ parser.add_argument('--h_layers', nargs='+', type=int, default=[32, 8])
 
 parser.add_argument('--load_model', type=str)
 parser.add_argument('--train', action='store_true')
+parser.add_argument('--eval', action='store_true')
 args = parser.parse_args()
 
 def load_dataset(dataset):
     ''' Return tokenized dataset, detokenizer and tokenizer '''
     if dataset == 'reuters':
+        print('Loading REUTERS dataset')
         word2id = np.load('../data/reuters/reuters_word2id.npy').item(0)
         id2word = np.load('../data/reuters/reuters_id2word.npy').item(0)
         tokenized = np.load('../data/reuters/reuters_tokenized.npy')
+    elif dataset == 'alternative':
+        print('Loading ALTERNATIVE dataset')
+        word2id = np.load('../data/20_newsgroup/20newsgroup_word2id.npy').item(0)
+        id2word = np.load('../data/20_newsgroup/20newsgroup_id2word.npy').item(0)
+        tokenized = np.load('../data/20_newsgroup/20newsgroup_tokenized.npy')
     else:
         print('Unknown dataset: ', dataset)
 
@@ -64,7 +71,13 @@ if __name__ == "__main__":
 
     if args.train:
         # Start training
+        print("TRAINING")
         geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
-    else:
+    elif args.eval:
+        print("EVALUATING")
         with open('../data/reuters/reuters_triplets.p', 'rb') as f:
             geo_vec_model.eval_triplets(pickle.load(f))
+    else:
+        geo_vec_model.get_doc_embedding(191)		
+        #geo_vec_model.get_doc_embedding(10)		
+        #geo_vec_model.get_doc_embedding(11)		
