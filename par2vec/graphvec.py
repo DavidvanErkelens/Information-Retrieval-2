@@ -279,7 +279,7 @@ class GraphVec():
 
             feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, idx_o, idx_i, val_o, val_i, train_dataset, train_labels)
 
-            outs = self.sess.run([self.opt_op, self.loss, self.aux_loss, self.accuracy], feed_dict=feed_dict)
+            outs = self.sess.run([self.opt_op, self.loss, self.aux_losses, self.accuracy], feed_dict=feed_dict)
             avg_loss, aux_loss, avg_acc = outs[1], outs[2], outs[3]
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
@@ -327,7 +327,8 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-                print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+	    if (i + 1) % 100 == 0:
+                print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 
