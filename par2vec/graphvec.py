@@ -318,7 +318,7 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-	    if (i + 1) % 100 == 0:
+            if (i + 1) % 100 == 0:
                 print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
