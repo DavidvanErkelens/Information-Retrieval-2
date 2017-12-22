@@ -258,8 +258,8 @@ class GraphVec():
                                                           2 * docidx.strides))
         np.random.shuffle(windows)
 
-        train_dataset = windows[:128, :-1]
-        train_labels = windows[:128, -1:]
+        train_dataset = windows[:512, :-1]
+        train_labels = windows[:512, -1:]
 
         return dummy, idx_o, idx_i, val_o, val_i, train_dataset, train_labels
 
