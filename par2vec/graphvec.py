@@ -293,11 +293,11 @@ class GraphVec():
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('models/{}_{}.ckpt'.format(save_name, e + 1))
+                    self.save('/scratch-shared/govertv/models/{}_{}.ckpt'.format(save_name, e + 1))
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
-            self.save('models/{}_final.ckpt'.format(save_name))
+            self.save('/scratch-shared/govertv/models/{}_final.ckpt'.format(save_name))
 
     def forward(self, doc_id):
         A_o, A_i, L_o, L_i = self.get_doc(doc_id)
