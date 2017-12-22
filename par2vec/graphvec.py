@@ -107,7 +107,8 @@ class GraphVec():
         self.doc_embeddings = tf.Variable(
              tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
-        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
+        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.emb_o+self.emb_i), [-1])
+        # self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
         embed_d = tf.tile(embed_d, [tf.shape(embed[0])[0], 1])
 
