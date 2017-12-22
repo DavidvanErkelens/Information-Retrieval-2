@@ -86,7 +86,7 @@ class GraphVec():
             tf.random_uniform([self.vocab_size, self.embedding_size_w], -1.0, 1.0))
 
         # concatenating word vectors and doc vector
-        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-2]
+        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-1]
 
         # softmax weights, W and D vectors should be concatenated before applying softmax
         self.weights = tf.Variable(
@@ -107,7 +107,8 @@ class GraphVec():
         self.doc_embeddings = tf.Variable(
              tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
-        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
+        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.emb_o+self.emb_i), [-1])
+        # self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
         embed_d = tf.tile(embed_d, [tf.shape(embed[0])[0], 1])
 
@@ -175,10 +176,6 @@ class GraphVec():
                                             tf.cast(self.placeholders['val_i'], tf.int32)),
                                 tf.cast(self.placeholders['val_i'], tf.int32))
 
-        # cp_o = tf.equal(tf.cast(self.recon_o, tf.int32),
-        #                 tf.cast(self.placeholders['val_o'], tf.int32))
-        # cp_i = tf.equal(tf.cast(self.recon_i, tf.int32),
-        #                 tf.cast(self.placeholders['val_i'], tf.int32))
         correct_prediction = tf.concat([cp_o, cp_i], 0)
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -279,7 +276,7 @@ class GraphVec():
 
             feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, idx_o, idx_i, val_o, val_i, train_dataset, train_labels)
 
-            outs = self.sess.run([self.opt_op, self.loss, self.aux_loss, self.accuracy], feed_dict=feed_dict)
+            outs = self.sess.run([self.opt_op, self.loss, self.aux_losses, self.accuracy], feed_dict=feed_dict)
             avg_loss, aux_loss, avg_acc = outs[1], outs[2], outs[3]
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
@@ -293,20 +290,16 @@ class GraphVec():
                 if (e + 1) % print_freq == 0:
                     print(' iter: %d/%d \t graph loss: %.6f \t aux loss: %.3f \t avg_acc: %.3f'
                           % (e+1, num_epochs, avg_loss, aux_loss, np.sum(self._acc_vals[-e:])/e))
-                    # outs = self.sess.run([self.recon_o,
-                    #                       self.placeholders['val_o'],
-                    #                       self.recon_i,
-                    #                       self.placeholders['val_o']],
-                    #                      feed_dict=feed_dict)
-                    # print(outs)
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('models/{}_{}.ckpt'.format(save_name, e + 1))
+                    self.save('/var/scratch/vouderaa/models/{}_{}.ckpt'.format(save_name, e + 1))
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
-            self.save('models/{}_final.ckpt'.format(save_name))
+            
+            self.save('/var/scratch/vouderaa/models/{}_final.ckpt'.format(save_name))
+            #self.save('/var/scratch/models/{}_final.ckpt'.format(save_name))
 
     def forward(self, doc_id):
         A_o, A_i, L_o, L_i = self.get_doc(doc_id)
@@ -327,7 +320,8 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-                print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+            if (i + 1) % 100 == 0:
+                print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 
@@ -368,6 +362,11 @@ class GraphVec():
     def save(self, file_name):
         print('Saving model: ', file_name)
         self.saver.save(self.sess, file_name)
+        with open(file_name[:-5]+'acc', 'wb') as f:
+            np.save(f, np.array(self._acc_vals))
+        with open(file_name[:-5]+'loss', 'wb') as f:
+            np.save(f, np.array(self._loss_vals))
+
 
     def load(self, file_name):
         print('Loading model: ', file_name)
