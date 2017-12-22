@@ -86,7 +86,7 @@ class GraphVec():
             tf.random_uniform([self.vocab_size, self.embedding_size_w], -1.0, 1.0))
 
         # concatenating word vectors and doc vector
-        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-2]
+        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-1]
 
         # softmax weights, W and D vectors should be concatenated before applying softmax
         self.weights = tf.Variable(
@@ -107,7 +107,8 @@ class GraphVec():
         self.doc_embeddings = tf.Variable(
              tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
-        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
+        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.emb_o+self.emb_i), [-1])
+        # self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
         embed_d = tf.tile(embed_d, [tf.shape(embed[0])[0], 1])
 
@@ -175,10 +176,6 @@ class GraphVec():
                                             tf.cast(self.placeholders['val_i'], tf.int32)),
                                 tf.cast(self.placeholders['val_i'], tf.int32))
 
-        # cp_o = tf.equal(tf.cast(self.recon_o, tf.int32),
-        #                 tf.cast(self.placeholders['val_o'], tf.int32))
-        # cp_i = tf.equal(tf.cast(self.recon_i, tf.int32),
-        #                 tf.cast(self.placeholders['val_i'], tf.int32))
         correct_prediction = tf.concat([cp_o, cp_i], 0)
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -293,12 +290,6 @@ class GraphVec():
                 if (e + 1) % print_freq == 0:
                     print(' iter: %d/%d \t graph loss: %.6f \t aux loss: %.3f \t avg_acc: %.3f'
                           % (e+1, num_epochs, avg_loss, aux_loss, np.sum(self._acc_vals[-e:])/e))
-                    # outs = self.sess.run([self.recon_o,
-                    #                       self.placeholders['val_o'],
-                    #                       self.recon_i,
-                    #                       self.placeholders['val_o']],
-                    #                      feed_dict=feed_dict)
-                    # print(outs)
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
@@ -371,6 +362,11 @@ class GraphVec():
     def save(self, file_name):
         print('Saving model: ', file_name)
         self.saver.save(self.sess, file_name)
+        with open(filename[:-5]+'acc', 'wb') as f:
+            np.save(self._acc_vals, f)
+        with open(filename[:-5]+'loss', 'wb') as f:
+            np.save(self._loss_vals, f)
+
 
     def load(self, file_name):
         print('Loading model: ', file_name)
