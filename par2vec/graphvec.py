@@ -279,7 +279,7 @@ class GraphVec():
 
             feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, idx_o, idx_i, val_o, val_i, train_dataset, train_labels)
 
-            outs = self.sess.run([self.opt_op, self.loss, self.aux_loss, self.accuracy], feed_dict=feed_dict)
+            outs = self.sess.run([self.opt_op, self.loss, self.aux_losses, self.accuracy], feed_dict=feed_dict)
             avg_loss, aux_loss, avg_acc = outs[1], outs[2], outs[3]
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
@@ -302,11 +302,13 @@ class GraphVec():
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('models/{}_{}.ckpt'.format(save_name, e + 1))
+                    self.save('/var/scratch/vouderaa/models/{}_{}.ckpt'.format(save_name, e + 1))
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
-            self.save('models/{}_final.ckpt'.format(save_name))
+            
+            self.save('/var/scratch/vouderaa/models/{}_final.ckpt'.format(save_name))
+            #self.save('/var/scratch/models/{}_final.ckpt'.format(save_name))
 
     def forward(self, doc_id):
         A_o, A_i, L_o, L_i = self.get_doc(doc_id)
@@ -327,7 +329,8 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-                print("\r Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+            if (i + 1) % 2 == 0:
+                print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 
