@@ -360,7 +360,7 @@ class GraphVec():
     def save(self, file_name):
         print('Saving model: ', file_name)
         self.saver.save(self.sess, file_name)
-        with open(fil_ename[:-5]+'acc', 'wb') as f:
+        with open(file_name[:-5]+'acc', 'wb') as f:
             np.save(self._acc_vals, f)
         with open(file_name[:-5]+'loss', 'wb') as f:
             np.save(self._loss_vals, f)
