@@ -4,7 +4,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cosine
 
-from par2vec.common import sp2tf, get_lapl
+from common import sp2tf, get_lapl
 
 
 class GraphVec():
@@ -224,11 +224,13 @@ class GraphVec():
         # Get document
         doc = [np.array([])]
         while len(doc[0]) < self.window_size:
+            doc = [np.array(self.corpus['tokenized'][self.samples[self.current_sample]]).copy()]
             if self.current_sample == len(self.corpus['tokenized']):
                 self.current_samples = 0
+                self.samples = np.arange(len(self.corpus['tokenized']))
+                np.random.shuffle(self.samples)
             else:
                 self.current_sample += 1
-            doc = [np.array(self.corpus['tokenized'][self.samples[self.current_sample]]).copy()]
 
         docidx, A_o, A_i, L_o, L_i = get_lapl(doc, self.corpus['word2id']).__next__()
 
