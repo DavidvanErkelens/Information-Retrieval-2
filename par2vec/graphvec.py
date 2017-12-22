@@ -158,7 +158,7 @@ class GraphVec():
 
         # aux_loss = tf.nn.nce_loss(self.weights, self.biases, self.placeholders['train_labels'],
         #                           self.embed, self.n_neg_samples, self.vocab_size)
-        self.aux_losses = None  # tf.reduce_mean(aux_loss)
+        self.aux_losses = tf.reduce_mean(aux_loss)
 
         # gather aux losses and add to total loss
         if self.aux_losses is not None:
@@ -279,7 +279,7 @@ class GraphVec():
 
             feed_dict = self.get_feed_dict(A_o, A_i, L_o, L_i, idx_o, idx_i, val_o, val_i, train_dataset, train_labels)
 
-            outs = self.sess.run([self.opt_op, self.loss, self.loss, self.accuracy], feed_dict=feed_dict)
+            outs = self.sess.run([self.opt_op, self.loss, self.aux_loss, self.accuracy], feed_dict=feed_dict)
             avg_loss, aux_loss, avg_acc = outs[1], outs[2], outs[3]
             self._loss_vals.append(avg_loss)
             self._acc_vals.append(avg_acc)
