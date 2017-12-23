@@ -1,6 +1,7 @@
 from graphvec import *
 import argparse
 import pickle
+import os
 
 
 parser = argparse.ArgumentParser()
@@ -26,6 +27,23 @@ parser.add_argument('--load_model', type=str)
 parser.add_argument('--train', action='store_true')
 parser.add_argument('--eval', action='store_true')
 args = parser.parse_args()
+
+def load_dataset(dataset):
+    ''' Return tokenized dataset, detokenizer and tokenizer '''
+    if dataset == 'reuters':
+        print('Loading REUTERS dataset')
+        word2id = np.load('../data/reuters/reuters_word2id.npy').item(0)
+        id2word = np.load('../data/reuters/reuters_id2word.npy').item(0)
+        tokenized = np.load('../data/reuters/reuters_tokenized.npy')
+    elif dataset == 'alternative':
+        print('Loading ALTERNATIVE dataset')
+        word2id = np.load('../data/20_newsgroup/20newsgroup_word2id.npy').item(0)
+        id2word = np.load('../data/20_newsgroup/20newsgroup_id2word.npy').item(0)
+        tokenized = np.load('../data/20_newsgroup/20newsgroup_tokenized.npy')
+    else:
+        print('Unknown dataset: ', dataset)
+
+    return tokenized, word2id, id2word
 
 def load_dataset(dataset):
     ''' Return tokenized dataset, detokenizer and tokenizer '''
@@ -78,6 +96,5 @@ if __name__ == "__main__":
         with open('../data/reuters/reuters_triplets.p', 'rb') as f:
             geo_vec_model.eval_triplets(pickle.load(f))
     else:
-        geo_vec_model.get_doc_embedding(191)		
-        #geo_vec_model.get_doc_embedding(10)		
-        #geo_vec_model.get_doc_embedding(11)		
+        os.mkdir(os.path.join('doc_emb', args.save_name))
+        geo_vec_model.get_doc_embeddings(os.path.join('doc_emb', args.save_name))
