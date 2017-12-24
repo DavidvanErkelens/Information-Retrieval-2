@@ -26,6 +26,7 @@ parser.add_argument('--h_layers', nargs='+', type=int, default=[32, 8])
 parser.add_argument('--load_model', type=str)
 parser.add_argument('--train', action='store_true')
 parser.add_argument('--eval', action='store_true')
+parser.add_argument('--bugfix', action='store_true')
 args = parser.parse_args()
 
 def load_dataset(dataset):
@@ -70,6 +71,11 @@ def load_dataset(dataset):
 if __name__ == "__main__":
     # Load dataset
     tokenized, word2id, id2word, triplets = load_dataset(args.dataset)
+
+    # bugfix
+    if args.bugfix:
+        word2id['<unk'] = -1
+        id2word[-1] = '<unk>'
 
     # Create corpus
     corpus = {'tokenized': tokenized, 'word2id': word2id}
