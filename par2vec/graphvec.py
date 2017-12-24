@@ -309,15 +309,18 @@ class GraphVec():
         return outs[0]
 
     def get_doc_embedding(self, doc_id, path):
-        doc_v = self.forward(doc_id)
-        with open(os.path.join(path, 'db_matrix{0:07}.npy'.format(doc_id)), 'wb') as f:
-            np.save(f, doc_v)
+        return self.forward(doc_id)
+        #with open(os.path.join(path, 'db_matrix{0:07}.npy'.format(doc_id)), 'wb') as f:
+        #    np.save(f, doc_v)
 
     def get_doc_embeddings(self, path):
+        doc_embeddings = np.zeros((len(self.corpus['tokenized']), self.embedding_size_d*self.h_layers[-2]))
         for doc_id in range(len(self.corpus['tokenized'])):
             if (doc_id+1 % 100) == 0:
                 print("{} Documents Processed".format(doc_id))
-            self.get_doc_embedding(doc_id, path)
+            doc_embeddings[doc_id, :] = self.get_doc_embedding(doc_id, path)
+        with open(os.path.join(path, 'db_matrix.npy'), 'wb') as f:
+            np.save(f, doc_v)
 
     def eval_triplets(self, triplets):
         correct = 0
