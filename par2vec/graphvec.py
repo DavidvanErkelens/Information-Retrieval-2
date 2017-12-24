@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import scipy.sparse as ss
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -86,7 +87,7 @@ class GraphVec():
             tf.random_uniform([self.vocab_size, self.embedding_size_w], -1.0, 1.0))
 
         # concatenating word vectors and doc vector
-        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-1]
+        combined_embed_vector_length = self.embedding_size_w * self.window_size + self.embedding_size_d*self.h_layers[-2]
 
         # softmax weights, W and D vectors should be concatenated before applying softmax
         self.weights = tf.Variable(
@@ -107,8 +108,8 @@ class GraphVec():
         self.doc_embeddings = tf.Variable(
              tf.random_uniform([self.embedding_size_d, self.vocab_size], -1.0, 1.0))
 
-        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.emb_o+self.emb_i), [-1])
-        # self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
+        #self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.emb_o+self.emb_i), [-1])
+        self.embed_d = tf.reshape(tf.matmul(self.doc_embeddings, self.h[-1]), [-1])
         embed_d = tf.expand_dims(self.embed_d, 0)
         embed_d = tf.tile(embed_d, [tf.shape(embed[0])[0], 1])
 
@@ -163,7 +164,7 @@ class GraphVec():
 
         # gather aux losses and add to total loss
         if self.aux_losses is not None:
-            self.loss += tf.scalar_mul(0.05, self.aux_losses)
+            self.loss += self.aux_losses
 
         # optimizer
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
@@ -259,8 +260,8 @@ class GraphVec():
                                                           2 * docidx.strides))
         np.random.shuffle(windows)
 
-        train_dataset = windows[:128, :-1]
-        train_labels = windows[:128, -1:]
+        train_dataset = windows[:512, :-1]
+        train_labels = windows[:512, -1:]
 
         return dummy, idx_o, idx_i, val_o, val_i, train_dataset, train_labels
 
@@ -293,7 +294,7 @@ class GraphVec():
 
             if backup_freq:
                 if (e + 1) % backup_freq == 0:
-                    self.save('/var/scratch/vouderaa/models/{}_{}.ckpt'.format(save_name, e + 1))
+                    self.save('/scratch-shared/govertv/models/{}_{}.ckpt'.format(save_name, e + 1))
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
@@ -309,9 +310,18 @@ class GraphVec():
 
         return outs[0]
 
-    def get_doc_embedding(self, doc_id):
-        doc_v = self.forward(doc_id)
-        with open('dbmatrix{}.npy'.format(doc_id), 'wb') as f:
+    def get_doc_embedding(self, doc_id, path):
+        return self.forward(doc_id)
+        #with open(os.path.join(path, 'db_matrix{0:07}.npy'.format(doc_id)), 'wb') as f:
+        #    np.save(f, doc_v)
+
+    def get_doc_embeddings(self, path):
+        doc_embeddings = np.zeros((len(self.corpus['tokenized']), self.embedding_size_d*self.h_layers[-2]))
+        for doc_id in range(len(self.corpus['tokenized'])):
+            if (doc_id+1 % 100) == 0:
+                print("{} Documents Processed".format(doc_id))
+            doc_embeddings[doc_id, :] = self.get_doc_embedding(doc_id, path)
+        with open(os.path.join(path, 'db_matrix.npy'), 'wb') as f:
             np.save(f, doc_v)
 
     def eval_triplets(self, triplets):
@@ -320,8 +330,8 @@ class GraphVec():
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
                     cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
                 correct += 1
-            if (i + 1) % 100 == 0:
-                print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1), end='')
+            if (i + 1) % 1000 == 0:
+                print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1))
 
         print("\nAccuracy {0:.3f}".format(correct/len(triplets)))
 

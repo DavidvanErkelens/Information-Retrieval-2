@@ -1,6 +1,7 @@
 from graphvec import *
 import argparse
 import pickle
+import os
 
 
 parser = argparse.ArgumentParser()
@@ -44,10 +45,31 @@ def load_dataset(dataset):
 
     return tokenized, word2id, id2word
 
+def load_dataset(dataset):
+    ''' Return tokenized dataset, detokenizer and tokenizer '''
+    if dataset == 'reuters':
+        print('Loading REUTERS dataset')
+        word2id = np.load('../data/reuters/reuters_word2id.npy').item(0)
+        id2word = np.load('../data/reuters/reuters_id2word.npy').item(0)
+        tokenized = np.load('../data/reuters/reuters_tokenized.npy')
+        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
+            triplets = pickle.load(f)
+    elif dataset == 'alternative':
+        print('Loading ALTERNATIVE dataset')
+        word2id = np.load('../data/20_newsgroup/20newsgroup_word2id.npy').item(0)
+        id2word = np.load('../data/20_newsgroup/20newsgroup_id2word.npy').item(0)
+        tokenized = np.load('../data/20_newsgroup/20newsgroup_tokenized.npy')
+        with open('../data/20_newsgroup/20newsgroup_triplets.p', 'rb') as f:
+            triplets = pickle.load(f)
+    else:
+        print('Unknown dataset: ', dataset)
+
+    return tokenized, word2id, id2word, triplets
+
 
 if __name__ == "__main__":
     # Load dataset
-    tokenized, word2id, id2word = load_dataset(args.dataset)
+    tokenized, word2id, id2word, triplets = load_dataset(args.dataset)
 
     # Create corpus
     corpus = {'tokenized': tokenized, 'word2id': word2id}
@@ -75,9 +97,8 @@ if __name__ == "__main__":
         geo_vec_model.train(args.epochs, args.print_freq, args.backup_freq, save_name=args.save_name)
     elif args.eval:
         print("EVALUATING")
-        with open('../data/reuters/reuters_triplets.p', 'rb') as f:
-            geo_vec_model.eval_triplets(pickle.load(f))
+        geo_vec_model.eval_triplets(triplets)
     else:
-        geo_vec_model.get_doc_embedding(191)		
-        #geo_vec_model.get_doc_embedding(10)		
-        #geo_vec_model.get_doc_embedding(11)		
+        if not os.path.exists(os.path.join('doc_emb', args.save_name)):
+            os.mkdir(os.path.join('doc_emb', args.save_name))
+        geo_vec_model.get_doc_embeddings(os.path.join('doc_emb', args.save_name))
