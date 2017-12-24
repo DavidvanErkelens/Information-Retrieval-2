@@ -297,7 +297,7 @@ class GraphVec():
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
-            
+
             self.save('/var/scratch/vouderaa/models/{}_final.ckpt'.format(save_name))
             #self.save('/var/scratch/models/{}_final.ckpt'.format(save_name))
 
