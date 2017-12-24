@@ -75,3 +75,8 @@ for i in range(20):
         triplets.append([i, same[j%len(same)], other[j%len(other)]])
 
 pickle.dump(triplets, open('data/20_newsgroup/20newsgroup_triplets.p', 'wb'))
+
+# Create big raw file
+bigdocs = '\n'.join([' '.join([id2word[word_id] for word_id in doc]) for doc in tokenized])
+with open('data/20_newsgroup/raw.txt', 'w') as f:
+    f.write(bigdocs)

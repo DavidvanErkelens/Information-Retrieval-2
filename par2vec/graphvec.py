@@ -298,7 +298,9 @@ class GraphVec():
 
         else:
             print('----> done training: {} iterations'.format(self.trained))
-            self.save('/scratch-shared/govertv/models/{}_final.ckpt'.format(save_name))
+
+            self.save('/var/scratch/vouderaa/models/{}_final.ckpt'.format(save_name))
+            #self.save('/var/scratch/models/{}_final.ckpt'.format(save_name))
 
     def forward(self, doc_id):
         A_o, A_i, L_o, L_i = self.get_doc(doc_id)
