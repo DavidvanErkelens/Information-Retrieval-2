@@ -322,13 +322,15 @@ class GraphVec():
                 print("{} Documents Processed".format(doc_id))
             doc_embeddings[doc_id, :] = self.get_doc_embedding(doc_id, path)
         with open(os.path.join(path, 'db_matrix.npy'), 'wb') as f:
-            np.save(f, doc_v)
+            np.save(f, doc_embeddings)
 
     def eval_triplets(self, triplets):
         correct = 0
         for i, triplet in enumerate(triplets):
             if (cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
-                    cosine(self.forward(triplet[0]), self.forward(triplet[2]))):
+                cosine(self.forward(triplet[0]), self.forward(triplet[2])) and
+                cosine(self.forward(triplet[0]), self.forward(triplet[1])) <
+                cosine(self.forward(triplet[1]), self.forward(triplet[2]))):
                 correct += 1
             if (i + 1) % 1000 == 0:
                 print("Accuracy {0:.3f}, Processed {1} triplets".format(correct/(i+1), i+1))

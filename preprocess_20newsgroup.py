@@ -72,7 +72,7 @@ for i in range(20):
     np.random.shuffle(same)
     np.random.shuffle(other)
     for j in range(1000):
-        triplets.append([i, same[j%len(same)], other[j%len(other)]])
+        triplets.append([same[j%len(same)], same[(j+1)%len(same)], other[j%len(other)]])
 
 pickle.dump(triplets, open('data/20_newsgroup/20newsgroup_triplets.p', 'wb'))
 
